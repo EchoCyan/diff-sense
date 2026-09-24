@@ -91,9 +91,6 @@ pnpm publish
 # 3. 打标签并创建 GitHub Release
 git tag -a v0.1.1 -m "v0.1.1" && git push origin v0.1.1
 gh release create v0.1.1 --generate-notes
-
-# 4. 可选：移动主版本标签，让 `@v0` 的使用者自动用上新版本
-git tag -f v0 v0.1.1 && git push -f origin v0
 ```
 
 发布前的检查由 `package.json` 中的脚本保证：

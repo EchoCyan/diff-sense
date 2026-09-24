@@ -66,21 +66,16 @@ CLI (src/index.ts → src/commands/review.ts)
 - `createProviderRegistry({ anthropic: createAnthropic({ apiKey }), ... })` 多提供商注册；`provider` / `model` / `apiKey` 由 `resolveSettings()`（`src/config.ts`）合并环境变量与 `~/.diff-sense/config.json` 得出，`apiKey` 缺省时回退到各提供商自身的环境变量
 - `result.usage.totalTokens` 类型为 `number | undefined`，需要 `?? 0`
 
-### 三个集成面
-
-1. **CLI** — Commander.js + @clack/prompts（spinner、config 向导）+ picocolors
-2. **Skill** — 源文件在 `skills/` 下（供其他 AI Agent 调用），经 skills.sh 分发，使用者安装到 `.agents/`、`.claude/` 等目录
-3. **GitHub Action** — Composite Action（`action.yml`）
-
 ## 约定
 
+- **简洁优先**：遵守 KISS/YAGNI/fail-fast，避免无必要抽象
 - **语言**：代码中的注释和用户面文案使用简体中文，标识符和类型名使用英文
 - **注释**：编写中文注释，遵循 TSDoc 规范
 - **提交信息**：Conventional Commits 格式，描述和正文使用简体中文，类型和作用域保留英文
 - **提交范围**：每次提交只包含一个逻辑变更
 - **构建**：TypeScript ESM（`"moduleResolution": "Bundler"`），tsup 单入口打包，target 取自 `package.json` 的 `engines`（最低 Node 版本由运行时依赖的要求决定，只在 `engines` 中维护）
 - **格式化 / 代码检查**：oxfmt + oxlint
-- **文档同步**：文档需与想法、决策和代码保持同步
+- **文档同步**：文档需与想法、决策和代码保持同步，只写当前状态：修改时就地改写成最新结论，不留旧值、改动来由或确认过程；内容遵循所在文档的体裁和要求，简洁明了
 
 ## 测试
 
