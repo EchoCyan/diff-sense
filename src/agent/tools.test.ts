@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createTools, type Locate } from "./tools";
 import type { DiffMode } from "../diff";
-import type { Finding } from "../types";
+import type { DiffEntry, Finding } from "../types";
 
 const exec = promisify(execFile);
 
@@ -25,9 +25,10 @@ async function run(
     locate = unanchored,
     cwd = repo,
     mode = { type: "workspace" } as DiffMode,
+    diffs = [] as DiffEntry[],
   } = {},
 ): Promise<string> {
-  const tools = createTools(cwd, mode, findings, locate);
+  const tools = createTools(cwd, mode, findings, locate, diffs);
   return tools[name].execute!(input, { toolCallId: "t", messages: [] } as never) as Promise<string>;
 }
 
@@ -73,6 +74,33 @@ describe("file_read", () => {
     const out = await run("file_read", { path });
     expect(out).not.toContain("TOP_SECRET");
     expect(out).toMatch(/^Error:/);
+  });
+});
+
+describe("file_read_diff", () => {
+  /** 本次变更的 diff 条目 */
+  const diffs: DiffEntry[] = ["src/a.ts", "src/b.ts"].map((path) => ({
+    path,
+    status: "modified",
+    diff: `diff --git a/${path} b/${path}\n+changed in ${path}`,
+    insertions: 1,
+    deletions: 0,
+  }));
+
+  it("按路径返回本次变更中文件的 diff，并标注各自路径", async () => {
+    const out = await run("file_read_diff", { paths: ["src/b.ts", "src/a.ts"] }, { diffs });
+    expect(out.indexOf("==== FILE: src/b.ts ====")).toBeLessThan(
+      out.indexOf("==== FILE: src/a.ts ===="),
+    );
+    expect(out).toContain("+changed in src/b.ts");
+    expect(out).toContain("+changed in src/a.ts");
+  });
+
+  it("跳过不在本次变更中的路径；全部不在时返回错误", async () => {
+    const out = await run("file_read_diff", { paths: ["src/a.ts", "src/none.ts"] }, { diffs });
+    expect(out).toContain("+changed in src/a.ts");
+    expect(out).not.toContain("src/none.ts");
+    expect(await run("file_read_diff", { paths: ["src/none.ts"] }, { diffs })).toMatch(/^Error:/);
   });
 });
 

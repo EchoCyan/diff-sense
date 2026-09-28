@@ -66,7 +66,7 @@ _Avoid_: Batch, chunk, partition
 _Avoid_: Reviewer, bot
 
 **工具 (Tool)**:
-审查 Agent 在循环中可调用的结构化函数：code_comment、file_read、code_search、task_done。
+审查 Agent 在循环中可调用的结构化函数：code_comment、file_read、file_read_diff、code_search、task_done。
 
 **审查提示词 (Review Prompt)**:
 驱动审查 Agent 的消息，包含本组差异、组外变更文件、匹配的规则和可选的业务上下文。

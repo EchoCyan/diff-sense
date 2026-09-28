@@ -44,6 +44,7 @@ export function buildSystemPrompt(): string {
 Capabilities:
 - Use code_comment to report each finding individually
 - Use file_read to read full file contents for additional context
+- Use file_read_diff to see what changed in files listed in <other_changed_files>
 - Use code_search to search the codebase for references and usages
 - Use task_done when you have finished reviewing all files
 

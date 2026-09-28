@@ -45,8 +45,9 @@ diff-sense 的原则是：**能用确定性代码解决的，一律不交给 LLM
 ### Agent 层：负责动态决策
 
 - **语义分组**：相关文件归为一组，各组并发审查、上下文隔离
-- **四个工具**：
+- **五个工具**：
   - `file_read`：读取文件
+  - `file_read_diff`：查看其他变更文件的 diff
   - `code_search`：搜索代码
   - `code_comment`：发布发现
   - `task_done`：结束审查

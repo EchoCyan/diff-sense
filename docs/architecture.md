@@ -79,12 +79,13 @@ diff-sense review
   - `<review_files>`：本组每个文件的 diff，包在 `<file path="...">` 中。
   - `<user_task>`：业务上下文（`--background`，可选）与 Review Checklist。
 
-**四个工具**（`src/agent/tools.ts`）：
+**五个工具**（`src/agent/tools.ts`）：
 
 | 工具 | 作用 | 限制 |
 | --- | --- | --- |
 | `code_comment` | 发布一条发现，立即锚定行号 | 严重程度与分类为固定枚举 |
 | `file_read` | 读取仓库内文件 | 拒绝仓库外路径（含符号链接），超过 50,000 字符截断 |
+| `file_read_diff` | 按路径查看本次变更中文件的 diff，包括其他组的文件；用于在分组之外核对跨文件改动 | 只返回本次送审的文件，已过滤的文件查不到 |
 | `code_search` | 用 `git grep` 搜索代码 | 最多返回 50 行 |
 | `task_done` | 完成信号 | 无实现，调用即结束循环 |
 
@@ -139,7 +140,7 @@ src/
 │   └── matcher.ts        规则加载与匹配
 ├── agent/
 │   ├── loop.ts           审查 Agent（ToolLoopAgent）
-│   ├── tools.ts          四个工具
+│   ├── tools.ts          五个工具
 │   └── prompts.ts        分组提示词与审查提示词
 └── output/
     ├── text.ts / json.ts / github.ts   三种格式化器

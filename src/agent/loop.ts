@@ -34,8 +34,12 @@ export async function runReviewAgent(
   const { model, entries, others, cwd, rules, diffMode, background, onStepEnd } = options;
   // findings 数组由 code_comment 工具的 execute 回调写入，写入前先锚定行号
   const findings: Finding[] = [];
-  const tools = createTools(cwd, diffMode, findings, (code, path) =>
-    anchor(code, path, entries, (p) => readNewFile(diffMode, p, cwd)),
+  const tools = createTools(
+    cwd,
+    diffMode,
+    findings,
+    (code, path) => anchor(code, path, entries, (p) => readNewFile(diffMode, p, cwd)),
+    [...entries, ...(others ?? [])],
   );
 
   const agent = new ToolLoopAgent({

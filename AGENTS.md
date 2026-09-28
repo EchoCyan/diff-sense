@@ -38,7 +38,7 @@ CLI (src/index.ts → src/commands/review.ts)
      ├── anchor()     行号锚定 (src/anchor.ts)，作为 locate 注入 code_comment；
      │                全文件扫描经 readNewFile() (src/diff.ts) 读取
      ├── prompts.ts   分组提示词 + 审查提示词（组外文件列入 <other_changed_files>）
-     └── tools.ts     code_comment / file_read / code_search / task_done；
+     └── tools.ts     code_comment / file_read / file_read_diff / code_search / task_done；
                       file_read 与 code_search 按差异模式读取与锚定相同的版本（newSideRev）
  → formatText() / formatJson() / formatGithub() (src/output/) ← --format text|json|github；进度（spinner）始终显示，写 stderr
 ```

@@ -5,7 +5,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { newSideRev, readNewFile, type DiffMode } from "../diff";
-import type { Finding, Location } from "../types";
+import type { DiffEntry, Finding, Location } from "../types";
 
 const exec = promisify(execFile);
 
@@ -13,16 +13,19 @@ const exec = promisify(execFile);
 export type Locate = (existingCode: string, path?: string) => Promise<Location>;
 
 /**
- * 创建审查 Agent 的四个工具：code_comment / file_read / code_search / task_done
+ * 创建审查 Agent 的五个工具：code_comment / file_read / file_read_diff / code_search / task_done
  *
  * file_read 与 code_search 按差异模式读取变更后的代码：workspace 读工作区，
  * commit / range 读被审查的提交，与锚定所用的版本一致
+ *
+ * @param diffs - 本次送审的全部 diff 条目（含其他分组），供 file_read_diff 查询
  */
 export function createTools(
   cwd: string,
   mode: DiffMode,
   findings: Finding[],
   locate: Locate,
+  diffs: DiffEntry[],
 ): ToolSet {
   const rev = newSideRev(mode);
   return {
@@ -70,6 +73,24 @@ export function createTools(
         } catch {
           return `Error: file not found or unreadable: ${filePath}`;
         }
+      },
+    }),
+
+    file_read_diff: tool({
+      description:
+        "Read the diffs of files changed in this update, including files in other review groups",
+      inputSchema: z.object({
+        paths: z.array(z.string()).describe("File paths relative to repository root"),
+      }),
+      execute: async ({ paths }) => {
+        const found = paths.flatMap((path) => {
+          const entry = diffs.find((e) => e.path === path);
+          return entry ? [`==== FILE: ${path} ====\n${entry.diff}`] : [];
+        });
+        if (found.length === 0) {
+          return "Error: none of these files were changed in this update";
+        }
+        return found.join("\n\n");
       },
     }),
 
