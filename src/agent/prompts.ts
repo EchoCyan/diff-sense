@@ -1,5 +1,4 @@
 import type { DiffEntry } from "../types";
-import type { Reference } from "../references";
 import { escapeAttr } from "../xml";
 
 /** 构建分组提示词的系统消息 */
@@ -11,7 +10,6 @@ Files in the same group typically:
 - Have producer/consumer relationships (e.g. interface and implementation)
 - Are i18n/config variants of the same resource (e.g. message_en.properties and message_zh.properties)
 - Share the same directory and work together on a single concern
-- Reference each other in code (see the reference list below the file list, when present)
 
 Each file in the list is prefixed with a zero-based index in brackets, e.g. \`[0] MODIFIED path/to/file (+12/-3)\`. Refer to files by that integer index, never by path.
 
@@ -23,23 +21,12 @@ Rules:
 - Output ONLY a JSON array, no other text.`;
 }
 
-/**
- * 构建分组提示词的用户消息：文件元数据加文件之间的引用关系，不含 diff 内容
- *
- * @param references - 变更文件之间的引用；为空时不输出引用列表
- */
-export function buildGroupingUserPrompt(entries: DiffEntry[], references: Reference[]): string {
+/** 构建分组提示词的用户消息，仅包含文件元数据（不含 diff 内容） */
+export function buildGroupingUserPrompt(entries: DiffEntry[]): string {
   const fileList = entries.map((e, i) => `[${i}] ${describeFile(e)}`).join("\n");
-  const referenceList =
-    references.length === 0
-      ? ""
-      : `
-
-References between these files (\`[a] -> [b] (name)\`: file a mentions the name of file b; found by text matching, may be incomplete or wrong):
-${references.map((r) => `[${r.from}] -> [${r.to}] (${r.name})`).join("\n")}`;
   return `Group the following changed files:
 
-${fileList}${referenceList}
+${fileList}
 
 Respond with a JSON array, where "files" holds the integer indices shown in brackets beside each file:
 [{"label": "short theme description", "files": [0, 1]}]`;

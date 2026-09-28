@@ -57,10 +57,7 @@ _Avoid_: Policy, guideline, check
 _Avoid_: Batch, chunk, partition
 
 **分组提示词 (Grouping Prompt)**:
-依据文件元数据（路径、状态、增删行数）和引用关系把文件聚类为语义分组的 LLM 调用。
-
-**引用关系 (Reference)**:
-一个变更文件的内容提到另一个变更文件的名字（文件名去掉扩展名），由确定性代码查找，作为分组提示词的线索。
+仅依据文件元数据（路径、状态、增删行数）把文件聚类为语义分组的 LLM 调用。
 
 ### Agent
 

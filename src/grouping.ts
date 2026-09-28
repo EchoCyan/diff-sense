@@ -2,7 +2,6 @@ import { generateText, type LanguageModel } from "ai";
 import { z } from "zod";
 import type { DiffEntry, FileGroup } from "./types";
 import { buildGroupingSystemPrompt, buildGroupingUserPrompt } from "./agent/prompts";
-import { findReferences } from "./references";
 
 /** 触发 LLM 分组的最少文件数；少于此数时全部文件归入一组 */
 export const GROUPING_MIN_FILES = 4;
@@ -25,25 +24,21 @@ export interface GroupingResult {
  * 将文件聚类为语义分组
  *
  * 文件数少于 {@link GROUPING_MIN_FILES} 时不调用 LLM，全部归入一组；
- * 否则以文件元数据和文件之间的引用关系调用分组提示词，调用失败时退化为单文件组
- *
- * @param read - 读取文件变更后的内容，用于查找引用关系；失败时返回 undefined
+ * 否则以文件元数据调用分组提示词，调用失败时退化为单文件组
  */
 export async function groupFiles(
   entries: DiffEntry[],
   model: LanguageModel,
-  read: (path: string) => Promise<string | undefined>,
 ): Promise<GroupingResult> {
   if (entries.length < GROUPING_MIN_FILES) {
     return { groups: [{ label: "all", entries }], totalTokens: 0 };
   }
 
-  const references = await findReferences(entries, read, MAX_FILES_PER_GROUP);
   try {
     const result = await generateText({
       model,
       instructions: buildGroupingSystemPrompt(MAX_FILES_PER_GROUP),
-      prompt: buildGroupingUserPrompt(entries, references),
+      prompt: buildGroupingUserPrompt(entries),
     });
     return {
       groups: parseGroups(result.text, entries),

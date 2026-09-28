@@ -19,9 +19,6 @@ function paths(groups: FileGroup[]): string[][] {
   return groups.map((g) => g.entries.map((e) => e.path));
 }
 
-/** 读不到任何文件内容，不产生引用 */
-const noContent = async () => undefined;
-
 /** 返回固定文本的模型 */
 function textModel(text: string): MockLanguageModelV4 {
   return new MockLanguageModelV4({
@@ -112,7 +109,7 @@ describe("parseGroups", () => {
 describe("groupFiles", () => {
   it("文件数少于 4 时不调用模型，全部归入一组", async () => {
     const model = textModel("[]");
-    const result = await groupFiles(entries(3), model, noContent);
+    const result = await groupFiles(entries(3), model);
     expect(model.doGenerateCalls).toHaveLength(0);
     expect(paths(result.groups)).toEqual([["f0.ts", "f1.ts", "f2.ts"]]);
     expect(result.totalTokens).toBe(0);
@@ -120,7 +117,7 @@ describe("groupFiles", () => {
 
   it("文件数达到 4 时仅以文件元数据调用分组提示词", async () => {
     const model = textModel('[{"label":"x","files":[0,1]},{"label":"y","files":[2,3]}]');
-    const result = await groupFiles(entries(4), model, noContent);
+    const result = await groupFiles(entries(4), model);
 
     expect(paths(result.groups)).toEqual([
       ["f0.ts", "f1.ts"],
@@ -132,30 +129,13 @@ describe("groupFiles", () => {
     expect(prompt).not.toContain("diff --git");
   });
 
-  it("变更文件之间的引用关系作为提示附在文件清单之后，没有引用时不附加", async () => {
-    const files = entries(4).map((e, i) => ({
-      ...e,
-      path: ["Alpha.ts", "Beta.ts", "Gamma.ts", "Delta.ts"][i],
-    }));
-    const read = async (path: string) =>
-      path === "Gamma.ts" ? 'import { a } from "./Alpha";' : "";
-    const model = textModel("[]");
-    await groupFiles(files, model, read);
-    const prompt = JSON.stringify(model.doGenerateCalls[0].prompt);
-    expect(prompt).toContain("[2] -> [0] (Alpha)");
-
-    const plain = textModel("[]");
-    await groupFiles(files, plain, noContent);
-    expect(JSON.stringify(plain.doGenerateCalls[0].prompt)).not.toContain("->");
-  });
-
   it("分组调用失败时退化为单文件组", async () => {
     const model = new MockLanguageModelV4({
       doGenerate: async () => {
         throw new Error("boom");
       },
     });
-    const result = await groupFiles(entries(4), model, noContent);
+    const result = await groupFiles(entries(4), model);
     expect(paths(result.groups)).toEqual([["f0.ts"], ["f1.ts"], ["f2.ts"], ["f3.ts"]]);
   });
 });
