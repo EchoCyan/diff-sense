@@ -28,19 +28,18 @@ DIFF_SENSE_PROVIDER=deepseek DIFF_SENSE_MODEL=deepseek-flash pnpm build && node 
 ```
 CLI (src/index.ts → src/commands/review.ts)
  → review() 编排 (src/review.ts)        ← 测试接缝
-   → getRepoRoot() (src/diff.ts)         ← 仓库根目录，后续步骤均以此为 cwd（子目录运行亦然）
-   → getDiff() (src/diff.ts)             ← git diff 解析（workspace / commit / range）
-   → filterFiles() (src/filter.ts)       ← 文件过滤（前置过滤 + 四道门）
-   → loadRules() (src/rules/matcher.ts)  ← 项目规则 + 内置规则（src/rules/builtin.ts）
-   → groupFiles() (src/grouping.ts)     ← 语义分组（文件数 ≥4 时调用分组提示词，失败退化为单文件组）
-   → runReviewAgent() (src/agent/loop.ts) ← 每组一个 ToolLoopAgent，p-limit 控制并发（--concurrency）
+   → getRepoRoot() (src/diff.ts)         ← 仓库根目录，后续步骤均以此为 cwd
+   → getDiff() (src/diff.ts)             ← git diff 解析
+   → filterFiles() (src/filter.ts)       ← 文件过滤
+   → loadRules() (src/rules/matcher.ts)  ← 项目规则 + 内置规则
+   → groupFiles() (src/grouping.ts)     ← 语义分组
+   → runReviewAgent() (src/agent/loop.ts) ← 每组一个 ToolLoopAgent
      ├── resolveGroupRules()  组内文件 → Review Checklist
-     ├── anchor()     行号锚定 (src/anchor.ts)，作为 locate 注入 code_comment；
+     ├── anchor()     行号锚定 (src/anchor.ts)
      │                全文件扫描经 readNewFile() (src/diff.ts) 读取
-     ├── prompts.ts   分组提示词 + 审查提示词（组外文件列入 <other_changed_files>）
-     └── tools.ts     code_comment / file_read / file_read_diff / code_search / task_done；
-                      file_read 与 code_search 按差异模式读取与锚定相同的版本（newSideRev）
- → formatText() / formatJson() / formatGithub() (src/output/) ← --format text|json|github；进度（spinner）始终显示，写 stderr
+     ├── prompts.ts   分组提示词 + 审查提示词
+     └── tools.ts     code_comment / file_read / file_read_diff / code_search / task_done
+ → formatText() / formatJson() / formatGithub() (src/output/) ← --format text|json|github
 ```
 
 ### 核心类型 (`src/types.ts`)
